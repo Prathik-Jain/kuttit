@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
@@ -28,7 +30,10 @@ class MyApp extends StatelessWidget {
 // - does not have an changing data
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
+  MyHomePage({
+    Key key,
+    this.title,
+  }) : super(key: key);
 
   final String title;
 
@@ -38,10 +43,42 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  String shortUrl = "";
+
+  // List - [1,2,3,4,2,2,2..]
+  // Map = {"name": "qikpik", "startedOn": "July 2020", ...}
+  // Set - (unique list) - {1,2,3,4,...}
+
   String shorten(String longUrl) {
     // MAKE a api call to the KUTT IT lib and get the short url
-    return "";
+    const url = "https://kutt.it/api/v2/links";
+    // Future<T> - future - I will compute this, but i dont know
+    // how long this is going to take,
+    // in the FUTURE
+
+    // Future<Response>
+    //once it returns then, we take resp and then do
+    // whatever we want to do with it.
+    // Lambda functions
+    http.post(
+      url,
+      headers: {
+        "X-API-KEY": "aqdNIhBKTBkJWS_rUY2p9CY8HpqKdvfgUwTqGNAR",
+      },
+      body: {
+        "target": longUrl,
+      },
+    ).then((res) {
+      Map body = json.decode(res.body);
+      String link = body['link'];
+
+      setState(() {
+        shortUrl = link;
+      });
+    });
   }
+
+  TextEditingController _longUrlController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -57,18 +94,27 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Column(
           children: [
             TextField(
+              controller: _longUrlController,
               decoration: InputDecoration(
                 labelText: "LOOOOOOOOONG URL",
               ),
             ),
             SizedBox(height: 20),
             RaisedButton(
-              onPressed: () {},
+              onPressed: () {
+                shorten(_longUrlController.text);
+              },
               color: Colors.blueAccent,
               child: Text("SHORTEN"),
             ),
             SizedBox(height: 20),
-            Text("short url"),
+            Text(
+              shortUrl,
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ],
         ),
       ),
